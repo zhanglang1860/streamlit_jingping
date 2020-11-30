@@ -1,3 +1,4 @@
 numpy==1.19.4
 streamlit==0.71.0
 pandas==1.1.4
+base58==2.0.1
