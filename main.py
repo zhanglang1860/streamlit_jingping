@@ -8,7 +8,6 @@
 
 from results_10 import *
 from total_cost_02_b import *
-import winreg
 from investment_financing_01 import *
 from total_cost_02 import *
 from profit_table_03 import *
@@ -88,13 +87,6 @@ def main_cal(filename='result', capacity_mw=50, eleprice=0.29, investment=35000,
         , '06项目投资现金流量表', '07项目资本金现金流量表', '08资金来源与运用表', '09资产负债表', '10财务指标汇总表']
 
     return result, sheet_name_list
-
-def get_desktop():
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders', )
-    return winreg.QueryValueEx(key, "Desktop")[0]
-
-
 
 
 
