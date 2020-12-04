@@ -57,8 +57,8 @@ class Results(BalanceSheet):
         self.df['项目投资财务内部收益率（所得税后）'] = self.df_06_f.loc[pd.IndexSlice['13', '项目投资财务内部收益率（所得税后）'], 1] * 100
         self.df['项目投资财务净现值（所得税前）'] = self.df_06_f.loc[pd.IndexSlice['8', '项目投资财务净现值（所得税前）'], 1]
         self.df['项目投资财务净现值（所得税后）'] = self.df_06_f.loc[pd.IndexSlice['9', '项目投资财务净现值（所得税后）'], 1]
-        self.df['资本金财务内部收益率'] = self.df_07_f.loc[pd.IndexSlice['4', '资本金财务内部收益率'], 1] * 100
-        self.df['资本金财务净现值'] = self.df_07_f.loc[pd.IndexSlice['5', '资本金财务净现值'], 1]
+        self.df['资本金财务内部收益率'] = self.df_07_f.loc[pd.IndexSlice['7', '资本金财务内部收益率'], 1] * 100
+        self.df['资本金财务净现值'] = self.df_07_f.loc[pd.IndexSlice['9', '资本金财务净现值'], 1]
         self.df['总投资收益率（ROI）'] = self.df_03_f.loc[pd.IndexSlice['18', '息税前利润（利润总额+利息支出）']].sum() / (
                 self.cal_y - self.building_y) / self.df['总投资'] * 100
 

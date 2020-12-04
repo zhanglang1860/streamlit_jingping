@@ -2,16 +2,17 @@
 # -*- coding: UTF-8 -*-
 """
 @author:ZhangWeiguo
-@file:loan_interest_04.py
+@file:loan_interest_04b.py
 @time:2020/11/25
 """
 from profit_table_03 import *
+from loan_interest_04 import *
 
 
 # 04借款还本付息计划表
-class LoanInterest(ProfitTable):
+class LoanInterestB(ProfitTable):
     def default(self):
-        LoanInterest.__init__(self)
+        LoanInterestB.__init__(self)
 
     def __init__(self, df_01, df_02, df_03, **kargs):
         ProfitTable.__init__(self, df_01, df_02, run_time=1, capacity_mw=kargs['capacity_mw'],
@@ -52,19 +53,18 @@ class LoanInterest(ProfitTable):
         # self.所得税 = [0, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 10.28, 122.84, 151.02, 179.20,
         #             207.38, 235.56, 224.36, 224.36, 224.36, 673.27, 673.27]  # 03利润和利润分配表-所得税(self.income_tax)
         self.所得税 = self.df_03_f.loc[pd.IndexSlice['8', '所得税']]
-        # print(self.所得税)
 
         self.营业税金附加 = self.df_03_f.loc[pd.IndexSlice['2', '营业税金附加']]
         self.补贴收入_应税 = self.df_03_f.loc[pd.IndexSlice['4', '补贴收入（应税）']]
         self.折旧费 = self.df_02_f.loc[pd.IndexSlice['1', '折旧费']]
+        self.弥补以前年度亏损 = self.df_03_f.loc[pd.IndexSlice['6', '弥补以前年度亏损']]
 
         self.columns_name = ['第0年', '第1年', '第2年', '第3年', '第4年', '第5年', '第6年', '第7年', '第8年', '第9年', '第10年', '第11年',
                              '第12年', '第13年', '第14年', '第15年', '第16年', '第17年', '第18年', '第19年', '第20年', '第21年']
         self.index_name0 = ['1', '1.1', '1.2', '1.2.1', '1.2.2', '1.3', '2', '2.1', '2.2', '2.3', '3', '3.1', '3.2',
-                            '3.3',
-                            '3.4', '3.5']
+                            '3.3', '3.4', '3.5', '3.6', '3.7', '3.8']
         self.index_name1 = ['长期借款', '年初借款余额', '当期还本付息', '本年还本', '本年付息', '期末借款余额', '流动资金借款', '流动资金借款累计', '流动资金利息',
-                            '偿还流动资金借款本金', '短期借款', '偿还短期借款本金', '短期借款利息', '利息备付率', '偿债备付率', '利息支出']
+                            '偿还流动资金借款本金', '短期借款', '偿还短期借款本金', '短期借款利息', '利息备付率', '偿债备付率', '利息支出', '估计的息前利润', '估计的所得税']
         self.df = pd.DataFrame(
             np.zeros(len(self.index_name1) * len(self.columns_name)).reshape(
                 (len(self.index_name1), len(self.columns_name))))
@@ -77,7 +77,7 @@ class LoanInterest(ProfitTable):
         x_l = 0
         for i in range(0, 21):
             if find_judge == False:
-                if fingding[i] <= 0:
+                if fingding.iloc[i] <= 0:
                     pass
                 else:
                     x_l = i
@@ -141,42 +141,51 @@ class LoanInterest(ProfitTable):
     # 行序号3-3.2，共3行,短期借款
     # 计算此项目时，需要用到营业收入和增值税（03利润和利润分配表），经营成本（02总成本费用表）
     def short_loan(self):
+        self.df['所得税第一次出现正数对应列'] = self.find_fist_positive(self.所得税)
+
         for i in range(1, 22):
+            self.df.loc[i, '估计的息前利润'] = self.营业收入.loc[i] + self.增值税.loc[i] - self.df.loc[i, '本年还本'] - \
+                                        self.df.loc[i, '本年付息'] - self.df.loc[i, '流动资金利息'] - self.经营成本.loc[i] - \
+                                        self.df.loc[i - 1, '短期借款'] - self.df.loc[i, '偿还流动资金借款本金'] - \
+                                        self.营业税金附加.loc[i] - self.补贴收入_应税.loc[i]
+            self.df.loc[i, '估计的所得税'] = (self.营业收入.loc[i] - self.营业税金附加.loc[i] - self.经营成本.loc[i] - \
+                                        self.df.loc[i, '本年付息'] - self.df.loc[i, '流动资金利息'] +
+                                        self.补贴收入_应税.loc[i] -
+                                        self.弥补以前年度亏损.loc[i] - self.折旧费.loc[i]) * self.it_rate / 100
+
             if i > 0:
                 if self.营业收入.loc[i] + self.增值税.loc[i] - self.df.loc[i, '本年还本'] - self.df.loc[i, '本年付息'] - self.df.loc[
                     i, '流动资金利息'] - self.经营成本.loc[i] - self.df.loc[i - 1, '短期借款'] - self.df.loc[i, '偿还流动资金借款本金'] - \
                         self.营业税金附加.loc[i] - self.补贴收入_应税.loc[i] < 0:
 
-                    self.df.loc[i, '短期借款'] = -(
-                            self.营业收入.loc[i] + self.增值税.loc[i] - self.df.loc[i, '本年还本'] - self.df.loc[i, '本年付息'] -
-                            self.df.loc[i, '流动资金利息'] - self.经营成本.loc[i] - self.df.loc[i - 1, '短期借款'] - self.df.loc[
-                                i, '偿还流动资金借款本金'] - self.营业税金附加.loc[i] - self.补贴收入_应税.loc[i]) / (
-                                                     1 - self.short_loan_rate / 100)
+
+
+                    if i >= self.df.loc[i, '所得税第一次出现正数对应列']:
+
+                        self.df.loc[i, '短期借款'] = -(self.df.loc[i, '估计的息前利润'] - self.df.loc[i, '估计的所得税']) / (
+                                1 - self.short_loan_rate / 100 + self.it_rate * self.short_loan_rate / 10000)
+
+                        # self.df.loc[i, '短期借款'] = -(
+                        #         self.营业收入.loc[i] + self.增值税.loc[i] - self.df.loc[i, '本年还本'] - self.df.loc[i, '本年付息'] -
+                        #         self.df.loc[i, '流动资金利息'] - self.经营成本.loc[i] - self.df.loc[i - 1, '短期借款'] - self.df.loc[
+                        #             i, '偿还流动资金借款本金'] - self.营业税金附加.loc[i] - self.补贴收入_应税.loc[i]) / (
+                        #                                  1 - self.short_loan_rate / 100)
+                    else:
+                        self.df.loc[i, '短期借款'] = -(
+                                self.营业收入.loc[i] + self.增值税.loc[i] - self.df.loc[i, '本年还本'] - self.df.loc[i, '本年付息'] -
+                                self.df.loc[i, '流动资金利息'] - self.经营成本.loc[i] - self.df.loc[i - 1, '短期借款'] - self.df.loc[
+                                    i, '偿还流动资金借款本金'] - self.营业税金附加.loc[i] - self.补贴收入_应税.loc[i]) / (
+                                                         1 - self.short_loan_rate / 100)
                 else:
                     self.df.loc[i, '短期借款'] = 0
                 self.df.loc[i, '偿还短期借款本金'] = self.df.loc[i - 1, '短期借款']
-            self.df.loc[i, '短期借款利息'] = self.df.loc[i, '短期借款'] * self.short_loan_rate / 100
-        #
-        # self.弥补以前年度亏损 = self.df_03_f.loc[pd.IndexSlice['6', '弥补以前年度亏损']]
-        # # 所得税第一次出现正数对应列
-        # self.df['所得税第一次出现正数对应列'] = self.find_fist_positive(self.df['所得税'])
-        # self.新短期借款 = -(self.营业收入[i] + self.增值税[i] - self.df.loc[i, '本年还本'] - self.df.loc[i, '本年付息'] -
-        #                self.df.loc[i, '流动资金利息'] - self.经营成本[i] - self.df.loc[i - 1, '短期借款'] - self.df.loc[
-        #                    i, '偿还流动资金借款本金'] - self.df.loc[i, '营业税金附加'] - self.df.loc[i, '补贴收入（应税）']
-        #                - (self.营业收入[i] - self.df.loc[i, '营业税金附加'] - self.经营成本[i] - self.df.loc[i, '本年付息'] - self.df.loc[
-        #             i, '流动资金利息']+self.df.loc[i, '补贴收入（应税）']-self.弥补以前年度亏损[i]-self.折旧费[i])*self.it_rate/100) / (
-        #                      1 - self.short_loan_rate / 100+self.short_loan_rate* self.short_loan_rate/ 10000)
+                self.df.loc[i, '短期借款利息'] = self.df.loc[i, '短期借款'] * self.short_loan_rate / 100
 
-        # print("ssssssssss")
-        # print(self.弥补以前年度亏损)
-        # short_loan_sum = self.sum_arry(self.short_loan_principal)
-        # repay_short_sum = self.sum_arry(self.repay_short_principal)
-        # short_int_sum = self.sum_arry(self.short_int)
-        # self.df = self.df.T
 
         return self.df.T
-        # ['短期借款'], self.df['偿还短期借款本金'], self.df['短期借款利息']
-        # , short_loan_sum, repay_short_sum, short_int_sum
+
+    # ['短期借款'], self.df['偿还短期借款本金'], self.df['短期借款利息']
+    # , short_loan_sum, repay_short_sum, short_int_sum
 
     # 计算利息支出，用于02总成本费用表
     def int_expense(self):
@@ -191,7 +200,6 @@ class LoanInterest(ProfitTable):
     # 计算两个指标，利息备付率（利息保障倍数（Interest Protection Multiples）ICR）、偿债备付率(Debt Coverage Ratio，DCR)
     # 需要用到03利润和利润分配表ebit，ebitda，income_tax
     def coverage_ratio(self):
-
         for i in range(1, 22):
             # 注意此处0.0001的使用，实际应该是0
             if self.df.loc[i, '本年付息'] > 0.0001:
@@ -206,7 +214,6 @@ class LoanInterest(ProfitTable):
         return self.df
 
     def cal_df_04(self):
-
         self.df_04 = self.long_loan()
         self.df_04 = self.wc_loan()
         self.df_04 = self.short_loan()
@@ -214,11 +221,17 @@ class LoanInterest(ProfitTable):
         self.df_04 = self.coverage_ratio()
 
         # self.df_04=self.df_04.drop('利息支出',axis=0)
+        # print(self.index_name0)
+        # print(self.df_04.index)
         self.df_04['项目'] = self.df_04.index
         self.df_04['序号'] = self.index_name0
         self.df_04.set_index(['序号', '项目'], inplace=True)
 
         self.df_04 = self.df_04.drop(columns=self.df_04.columns[1], axis=1)
+        # print('ooooooooooo')
+        # print(self.df_04)
+        # p111 = self.df_04.loc[pd.IndexSlice['3', '短期借款']]
+        # print(p111)
 
         return self.df_04
 
@@ -247,12 +260,12 @@ if __name__ == '__main__':
     real_04 = LoanInterest(result_01, result_02, result_03, run_time=1, capacity_mw=50, eleprice=0.26, investment=35000,
                            annual_effective_hours=2800)
     result_04 = real_04.cal_df_04()
-    短期借款 = result_04.loc[pd.IndexSlice['3', '短期借款']]
-    所得税 = result_03.loc[pd.IndexSlice['8', '所得税']]
-    result_03['合计']=result_03.sum(axis=1)
 
-    print(result_03.iloc[:, 0:3])
-    print(result_04.iloc[:, 0:3])
+    real_04 = LoanInterestB(result_01, result_02, result_03, run_time=1, capacity_mw=50, eleprice=0.26,
+                            investment=35000,
+                            annual_effective_hours=2800)
+    result_04 = real_04.cal_df_04()
+
 
     #
     # writer = pd.ExcelWriter('LoanInterest.xlsx')

@@ -28,14 +28,15 @@ class CapitalCF(InvestmentCF):
         self.本年还本 = self.df_04_f.loc[pd.IndexSlice['1.2.1', '本年还本']]
         self.偿还流动资金借款本金 = self.df_04_f.loc[pd.IndexSlice['2.3', '偿还流动资金借款本金']]
         self.所得税 = self.df_03_f.loc[pd.IndexSlice['8', '所得税']]
+        self.偿还短期借款本金 = self.df_04_f.loc[pd.IndexSlice['3.1', '偿还短期借款本金']]
 
         self.columns_name = ['第0年', '第1年', '第2年', '第3年', '第4年', '第5年', '第6年', '第7年', '第8年', '第9年', '第10年', '第11年',
                              '第12年', '第13年', '第14年', '第15年', '第16年', '第17年', '第18年', '第19年', '第20年', '第21年']
         self.index_name0_07 = ['1', '1.1', '1.2', '1.3', '1.4', '2', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '3', '4',
-                               '5']
+                               '5','6','7','8','9','10']
         self.index_name1 = ['现金流入', '营业收入', '补贴收入', '回收固定资产余值', '回收流动资金', '现金流出', '项目资本金',
                             '借款本金偿还', '借款利息支付', '经营成本',
-                            '营业税金附加', '所得税', '净现金流量']
+                            '营业税金附加', '所得税', '净现金流量','现金流出_旧','借款本金偿还_旧','净现金流量_旧']
         self.df = pd.DataFrame(np.zeros(len(self.index_name1) * len(self.columns_name)).reshape(len(self.columns_name),
                                                                                                 len(self.index_name1)))
         self.df.columns = self.index_name1
@@ -121,11 +122,17 @@ class CapitalCF(InvestmentCF):
         for i in range(1, 22):
             self.df.loc[i, '项目资本金'] = self.资本金_投资计划与资金筹措表.iloc[i]
             self.df.loc[i, '借款本金偿还'] = self.本年还本[i] + self.偿还流动资金借款本金[i]
+            self.df.loc[i, '借款本金偿还_旧'] = self.本年还本[i] + self.偿还流动资金借款本金[i]+self.偿还短期借款本金[i]
+
             self.df.loc[i, '借款利息支付'] = self.利息支出[i]
             self.df.loc[i, '经营成本'] = self.经营成本[i]
             self.df.loc[i, '营业税金附加'] = self.营业税金附加.iloc[i]
             self.df.loc[i, '所得税'] = self.所得税[i]
             self.df.loc[i, '现金流出'] = self.df.loc[i, '项目资本金'] + self.df.loc[i, '借款本金偿还'] + self.df.loc[i, '借款利息支付'] + \
+                                     self.df.loc[i, '经营成本'] + \
+                                     self.df.loc[i, '营业税金附加'] + self.df.loc[i, '所得税']
+
+            self.df.loc[i, '现金流出_旧'] = self.df.loc[i, '项目资本金'] + self.df.loc[i, '借款本金偿还_旧'] + self.df.loc[i, '借款利息支付'] + \
                                      self.df.loc[i, '经营成本'] + \
                                      self.df.loc[i, '营业税金附加'] + self.df.loc[i, '所得税']
         # self.out_cf_sum = self.sum_arry(self.out_cf)
@@ -141,12 +148,15 @@ class CapitalCF(InvestmentCF):
         # 序号3净现金流量
         for i in range(1, 22):
             self.df.loc[i, '净现金流量'] = self.df.loc[i, '现金流入'] - self.df.loc[i, '现金流出']
-
+            self.df.loc[i, '净现金流量_旧'] = self.df.loc[i, '现金流入'] - self.df.loc[i, '现金流出_旧']
         # self.net_cf_sum = self.sum_arry(self.net_cf)
         # 计算指标 IRR
         self.df.loc[1, '资本金财务内部收益率'] = self.irr_f(self.df.loc[:, '净现金流量'])
+        self.df.loc[1, '资本金财务内部收益率_旧'] = self.irr_f(self.df.loc[:, '净现金流量_旧'])
+
         # 计算指标NPV
         self.df.loc[1, '资本金财务净现值'] = self.npv_f(self.br_capital / 100, self.df.loc[1:, '净现金流量'])
+        self.df.loc[1, '资本金财务净现值_旧'] = self.npv_f(self.br_capital / 100, self.df.loc[1:, '净现金流量_旧'])
 
         self.df = self.df.T
         self.df.insert(0, '合计', self.df.sum(axis=1))
