@@ -9,7 +9,6 @@
 from results_10 import *
 from total_cost_02_b import *
 from loan_interest_04b import *
-import winreg
 from investment_financing_01 import *
 from total_cost_02 import *
 from profit_table_03 import *
