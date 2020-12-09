@@ -184,7 +184,7 @@ if detial01:
         res02['序号项目'] = res02['序号'] + ' ' + res02['项目']
     res02.set_index(['序号项目'], inplace=True)
     res02 = res02.drop(['序号', '项目'], axis=1)
-
+    res02['合计'] = res02.sum(axis=1)
     if resname.index(option) >= 2 and resname.index(option) < 9:
         res02.columns = cn
     if resname.index(option) == 9:
