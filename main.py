@@ -213,11 +213,10 @@ if detial02:
     expander = st.beta_expander("说明")
     expander.write("已存储在桌面上，文件名为：results_经济评价.xlsx")
 #     file = os.path.join(get_desktop(), '%s.xlsx') % filename
-    
-    
 #     writer = pd.ExcelWriter(file + '.xlsx')
+
     file = os.path.join(r"C:\\", '%s.xlsx') % filename
-    writer = pd.ExcelWriter(file + '.xlsx')
+    writer = pd.ExcelWriter(file)
     for i in range(0, len(res)):
         res[i].loc[:,'合计'] = res[i].sum(axis=1)
         res[i].to_excel(writer, float_format='%.5f', sheet_name=resname[i])
