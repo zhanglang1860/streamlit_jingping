@@ -20,7 +20,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import base64
-
+import winreg
 
 
 def main_cal(filename='result', capacity_mw=50, eleprice=0.29, investment=35000,
