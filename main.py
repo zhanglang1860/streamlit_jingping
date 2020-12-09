@@ -216,8 +216,8 @@ if detial02:
     
     
 #     writer = pd.ExcelWriter(file + '.xlsx')
-    file = os.path.join(d"C:\", '%s.xlsx') % filename
-    writer = pd.ExcelWriter(filename + '.xlsx')
+    file = os.path.join("C:\", '%s.xlsx') % filename
+    writer = pd.ExcelWriter(file + '.xlsx')
     for i in range(0, len(res)):
         res[i].loc[:,'合计'] = res[i].sum(axis=1)
         res[i].to_excel(writer, float_format='%.5f', sheet_name=resname[i])
