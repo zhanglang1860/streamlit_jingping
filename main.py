@@ -125,10 +125,11 @@ def get_desktop():
   
   
   
-# def filedownload(files_list):
+def filedownload(files_list):
 #     b64 = base64.b64encode(files_list.encode(data.getBytes("UTF-8"))).decode()  # strings <-> bytes conversions
-#     href = f'<a href="data:file/csv;base64,{b64}" download="经济评价.csv">Download CSV File</a>'
-#     return href
+    b64=base64.standard_b64encode(files_list.encode(encoding='utf_8_sig')).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="经济评价.csv">Download CSV File</a>'
+    return href
 
 
 
@@ -215,12 +216,15 @@ if detial02:
 #     file = os.path.join(get_desktop(), '%s.xlsx') % filename
 #     writer = pd.ExcelWriter(file + '.xlsx')
 
-    expander.write("默认路径为 D:\经济评价_结果.xlsx")    
-    writer = pd.ExcelWriter(r'D:\经济评价_结果.xlsx')
-    for i in range(0, len(res)):
-        res[i].loc[:,'合计'] = res[i].sum(axis=1)
-        res[i].to_excel(writer, float_format='%.5f', sheet_name=resname[i])
-    writer.save()
+    files_list=res[9].to_csv()
+    st.markdown(filedownload(files_list), unsafe_allow_html=True)
+
+#     expander.write("默认路径为 D:\经济评价_结果.xlsx")    
+#     writer = pd.ExcelWriter(r'D:\经济评价_结果.xlsx')
+#     for i in range(0, len(res)):
+#         res[i].loc[:,'合计'] = res[i].sum(axis=1)
+#         res[i].to_excel(writer, float_format='%.5f', sheet_name=resname[i])
+#     writer.save()
 
 
 
