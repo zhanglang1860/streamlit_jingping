@@ -20,7 +20,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import base64
-import winreg
+# import winreg
 
 
 def main_cal(filename='result', capacity_mw=50, eleprice=0.29, investment=35000,
@@ -122,6 +122,9 @@ def get_desktop():
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                          r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders', )
     return winreg.QueryValueEx(key, "Desktop")[0]
+  
+  
+  
 # def filedownload(files_list):
 #     b64 = base64.b64encode(files_list.encode(data.getBytes("UTF-8"))).decode()  # strings <-> bytes conversions
 #     href = f'<a href="data:file/csv;base64,{b64}" download="经济评价.csv">Download CSV File</a>'
@@ -209,8 +212,11 @@ detial02 = left_column2.checkbox('存储')
 if detial02:
     expander = st.beta_expander("说明")
     expander.write("已存储在桌面上，文件名为：results_经济评价.xlsx")
-    file = os.path.join(get_desktop(), '%s.xlsx') % filename
-    writer = pd.ExcelWriter(file + '.xlsx')
+#     file = os.path.join(get_desktop(), '%s.xlsx') % filename
+    
+    
+#     writer = pd.ExcelWriter(file + '.xlsx')
+    writer = pd.ExcelWriter(filename + '.xlsx')
     for i in range(0, len(res)):
         res[i].loc[:,'合计'] = res[i].sum(axis=1)
         res[i].to_excel(writer, float_format='%.5f', sheet_name=resname[i])
